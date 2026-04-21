@@ -42,6 +42,14 @@ dev = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.uv]
+# flash-attn imports torch in its setup.py but doesn't declare it as a build
+# dep, so PEP-517 isolated builds fail. Disable isolation for it specifically;
+# uv will use the project env (which has torch installed via the runtime deps)
+# for the build. Run `uv sync` once first to ensure torch lands before
+# `uv sync --extra cuda` triggers the flash-attn build.
+no-build-isolation-package = ["flash-attn"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/memoryagent"]
 
