@@ -1,0 +1,63 @@
+[project]
+name = "memoryagent"
+version = "0.1.0"
+description = "Joint REPLUG-style training of bge-small-en-v1.5 + Qwen3.5-0.8B"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "torch>=2.11",   # for torch.optim.Muon
+    "transformers>=4.45",
+    "tokenizers>=0.20",
+    "accelerate>=0.34",
+    "datasets>=3.0",
+    "safetensors>=0.4",
+    "pydantic>=2.8",
+    "pyyaml>=6.0",
+    "numpy>=1.26",
+    "tqdm>=4.66",
+    "rich>=13.7",
+    "einops>=0.8",
+    "faiss-cpu>=1.8",
+]
+
+[project.optional-dependencies]
+# CUDA-only deps; all gated by platform marker so the extra is a no-op on macOS.
+# faiss-gpu is intentionally omitted: PyPI faiss-gpu is stuck at 1.7.2 and faiss-cpu
+# at 1M-passage scale is faster than the kernel-launch overhead would save.
+cuda = [
+    "bitsandbytes>=0.43; platform_system=='Linux'",
+    "flash-attn>=2.6; platform_system=='Linux'",
+]
+wandb = ["wandb>=0.18"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-xdist>=3.6",
+    "ruff>=0.6",
+    "pyright>=1.1.380",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/memoryagent"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q"
+
+[tool.pyright]
+include = ["src", "scripts", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"

@@ -1,0 +1,30 @@
+# M3 Max prototype config. Currently runs on toy data — swap data.name to "nq"
+# once the NQ loader (task #7) lands and you've built the full Wikipedia index.
+seed: 42
+device: mps
+grad_checkpoint: false
+batch_size: 2
+k: 5
+tau: 0.1
+max_steps: 1000
+log_every: 25
+eval_every: 100
+ckpt_every: 250
+output_dir: runs/m3_proto
+
+data:
+  name: toy            # swap to "nq" when wired
+  max_question_tokens: 128   # chat template eats ~30 tokens of overhead
+  max_answer_tokens: 32
+  max_passage_tokens: 192
+
+optim:
+  lr_generator: 1.0e-5
+  lr_encoder: 2.0e-5
+  lr_projection: 1.0e-4
+  weight_decay: 0.01
+  grad_clip: 1.0
+  warmup_steps: 100
+
+index:
+  refresh_every: 200

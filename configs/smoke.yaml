@@ -1,0 +1,28 @@
+# 100-doc toy corpus, fast — for verifying the train loop end-to-end.
+seed: 42
+device: auto
+batch_size: 2
+k: 2
+tau: 0.1
+max_steps: 50
+log_every: 10
+eval_every: 25
+ckpt_every: 50
+output_dir: runs/smoke
+
+data:
+  name: toy
+  max_question_tokens: 96   # chat template eats ~30 tokens of overhead
+  max_answer_tokens: 16
+  max_passage_tokens: 64
+
+optim:
+  lr_generator: 5.0e-6
+  lr_encoder: 5.0e-5
+  lr_projection: 1.0e-3
+  weight_decay: 0.01
+  grad_clip: 1.0
+  warmup_steps: 5
+
+index:
+  refresh_every: 25

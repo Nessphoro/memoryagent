@@ -1,0 +1,40 @@
+# Real NQ run on M3 Max with conservative memory settings — Qwen3.5-0.8B's
+# 248K vocab + k=5 REPLUG forward + bf16 activations is heavy on MPS, so:
+#  - batch_size=1, k=3 keeps the per-step memory footprint bounded
+#  - grad_checkpoint trades ~25% compute for ~3-4x activation memory reduction
+#  - max_*_tokens kept tight (passages ~150 toks is the BeIR/nq norm anyway)
+# Bump these knobs once you've watched a clean run go through.
+seed: 42
+device: mps
+grad_checkpoint: true
+batch_size: 1
+k: 3
+tau: 0.1
+max_steps: 200
+log_every: 5
+eval_every: 50
+ckpt_every: 100
+output_dir: runs/m3_nq
+
+data:
+  name: nq
+  corpus_subsample: 2000
+  train_size: 200
+  eval_size: 50
+  # max_question_tokens budgets the CHAT-TEMPLATED query (system prompt +
+  # user envelope + asst opener add ~30 tokens of overhead). Raw NQ questions
+  # are ~15 tokens; 96 leaves comfortable headroom.
+  max_question_tokens: 96
+  max_answer_tokens: 24
+  max_passage_tokens: 160
+
+optim:
+  lr_generator: 1.0e-5
+  lr_encoder: 2.0e-5
+  lr_projection: 1.0e-4
+  weight_decay: 0.01
+  grad_clip: 1.0
+  warmup_steps: 20
+
+index:
+  refresh_every: 100

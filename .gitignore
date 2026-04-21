@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Caches
+.cache/
+.ruff_cache/
+.pytest_cache/
+.pyright/
+
+# Project artifacts
+checkpoints/
+runs/
+wandb/
+embeddings_v*.pt
+embeddings_v*.npy
+*.faiss
+ids.json
+hf_cache/

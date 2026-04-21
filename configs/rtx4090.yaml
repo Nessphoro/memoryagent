@@ -1,0 +1,57 @@
+# Real training run on RTX 4090 (24 GB VRAM) with Qwen3.5-1.7B and Muon.
+#
+# Memory budget (full FT, Muon + Adam8bit, bf16, grad ckpt, B=4, k=3):
+#   - params bf16                   ~3.4 GB
+#   - grads bf16 (peak in backward) ~3.4 GB
+#   - Muon momentum (bf16, matrix)  ~2.5 GB
+#   - Adam8bit state (embeddings)   ~1.5-3 GB
+#   - activations (12 seqs w/ ckpt) ~6-8 GB
+#   - CUDA overhead                 ~1-2 GB
+#   = ~18-22 GB → fits with some headroom on a 24 GB 4090. If OOM, drop to
+#     B=2; if there's spare VRAM after a clean run, push k=5 next.
+#
+# (4B doesn't fit on 24 GB even with these tricks — would need LoRA or A100.)
+seed: 42
+device: cuda
+grad_checkpoint: true
+batch_size: 4
+k: 3
+tau: 0.1
+max_steps: 2000
+log_every: 10
+eval_every: 200
+ckpt_every: 500
+output_dir: runs/rtx4090
+
+model:
+  generator_name: Qwen/Qwen3.5-1.7B
+  encoder_name: BAAI/bge-small-en-v1.5
+
+data:
+  name: nq
+  corpus_subsample: 100000
+  train_size: 5000
+  eval_size: 500
+  max_question_tokens: 128   # chat template eats ~30 tokens of overhead
+  max_answer_tokens: 32
+  max_passage_tokens: 192
+
+optim:
+  optimizer: muon
+  # Per-module LRs. Reused as-is by both the AdamW group (1D params +
+  # embeddings) AND the Muon matrix-param group — Moonshot's "match_rms_adamw"
+  # adjustment inside torch.optim.Muon rescales the orthogonalized update so
+  # the same number tuned for AdamW lands at the right RMS for Muon.
+  lr_generator: 1.0e-5
+  lr_encoder: 2.0e-5
+  lr_projection: 1.0e-4
+  weight_decay: 0.01
+  grad_clip: 1.0
+  warmup_steps: 100
+  muon_momentum: 0.95
+  muon_ns_steps: 5
+  muon_adjust_lr_fn: match_rms_adamw
+  use_8bit_adam: true         # halves embedding-side state; trivially worth it on CUDA
+
+index:
+  refresh_every: 500
